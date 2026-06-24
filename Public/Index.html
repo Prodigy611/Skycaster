@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyCast AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#F0A500;--gold2:#FFD166;--w:#fff;--r:16px;--t:.3s cubic-bezier(.4,0,.2,1);--sf:#0D1117;--sm:#1a2a4a;--st:#1E5FA8}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:linear-gradient(150deg,var(--sf) 0%,var(--sm) 50%,var(--st) 100%);min-height:100vh;color:var(--w);transition:background 2.5s;overflow-x:hidden}
+#atm{position:fixed;inset:0;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 20px 80px}
+.gl{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(16px)}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:28px 0 0}
+.logo{font-family:'DM Serif Display',serif;font-size:1.4rem}.logo em{font-style:italic;color:var(--gold2)}
+.logo-tag{font-family:'DM Mono',monospace;font-size:.55rem;padding:2px 6px;border:1px solid rgba(255,255,255,.15);border-radius:4px;color:rgba(255,255,255,.4);margin-left:6px}
+#clk{font-family:'DM Mono',monospace;font-size:1rem;text-align:right}
+#dt{font-size:.68rem;color:rgba(255,255,255,.4);text-align:right;margin-top:2px}
+.srch{margin-top:32px;display:flex;gap:8px;flex-wrap:wrap}
+.iw{flex:1;min-width:200px;position:relative}
+.iw svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:rgba(255,255,255,.35);pointer-events:none}
+input{width:100%;padding:13px 16px 13px 42px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:var(--w);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none}
+input:focus{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.12)}
+input::placeholder{color:rgba(255,255,255,.35)}
+.btn{padding:13px 22px;border-radius:50px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;transition:all var(--t);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.bg{background:var(--gold);color:#0D1117}.bg:hover:not(:disabled){background:var(--gold2);transform:translateY(-1px)}
+.bw{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--w)}.bw:hover:not(:disabled){background:rgba(255,255,255,.14);transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.err{display:none;margin-top:10px;padding:10px 16px;border-radius:10px;background:rgba(220,50,50,.12);border:1px solid rgba(220,80,80,.25);color:#ffaaaa;font-size:.82rem}
+.empty{margin-top:80px;text-align:center}
+.orb{width:110px;height:110px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(255,209,102,.3),rgba(30,95,168,.1));border:1px solid rgba(255,255,255,.1);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-size:2.8rem;animation:breathe 4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05);box-shadow:0 0 40px 10px rgba(240,165,0,.1)}}
+.etitle{font-family:'DM Serif Display',serif;font-size:1.9rem;margin-bottom:10px}
+.esub{font-size:.88rem;color:rgba(255,255,255,.45);max-width:320px;margin:0 auto 28px;line-height:1.6}
+#wp{display:none;margin-top:40px;animation:rise .7s cubic-bezier(.4,0,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.hero{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+.eyebrow{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px}
+.city{font-family:'DM Serif Display',serif;font-size:clamp(1.8rem,5vw,3.4rem);line-height:1.05;letter-spacing:-1px}
+.cpill{display:inline-block;margin-left:8px;font-size:.65rem;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);font-family:'DM Mono',monospace;vertical-align:middle}
+.crow{display:flex;align-items:center;gap:12px;margin-top:18px}
+.wxi{font-size:3.5rem;filter:drop-shadow(0 0 20px rgba(240,165,0,.4));animation:float 3.5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
+.clbl{font-family:'DM Serif Display',serif;font-size:1.4rem}
+.csub{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:3px;text-transform:capitalize}
+.tc{text-align:right}
+.tmp{font-family:'DM Serif Display',serif;font-size:clamp(4.5rem,12vw,8rem);line-height:.9;letter-spacing:-4px}
+.tunit{font-size:.35em;vertical-align:super;color:rgba(255,255,255,.6);letter-spacing:0}
+.tfl{font-size:.75rem;color:rgba(255,255,255,.4);margin-top:6px;font-family:'DM Mono',monospace}
+.trng{font-size:.8rem;color:rgba(255,255,255,.55);margin-top:3px}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:24px}
+.sc{border-radius:var(--r);padding:18px 16px;transition:transform var(--t)}.sc:hover{transform:translateY(-3px)}
+.si{font-size:1.2rem;margin-bottom:8px}
+.sl{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:5px}
+.sv{font-family:'DM Serif Display',serif;font-size:1.6rem;line-height:1}
+.su{font-size:.68rem;color:rgba(255,255,255,.4);margin-top:3px;font-family:'DM Mono',monospace}
+.sbc{border-radius:var(--r);padding:18px 20px;margin-top:10px}
+.sbl{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.7rem;color:rgba(255,255,255,.5);margin-bottom:8px}
+.sbt{height:5px;border-radius:10px;background:rgba(255,255,255,.1);position:relative;overflow:hidden}
+.sbf{height:100%;border-radius:10px;background:linear-gradient(90deg,#FF6B35,var(--gold),var(--gold2));transition:width 1s}
+.sbb{width:12px;height:12px;border-radius:50%;background:var(--gold2);box-shadow:0 0 10px rgba(255,209,102,.8);position:absolute;top:50%;transform:translateY(-50%);transition:left 1s}
+.sbtm{display:flex;justify-content:space-between;margin-top:8px;font-size:.74rem;color:rgba(255,255,255,.5)}
+.ey{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3);margin:36px 0 12px}
+.fs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.fc{border-radius:var(--r);padding:16px 10px;text-align:center;transition:transform var(--t),background var(--t)}.fc:hover{transform:translateY(-3px);background:rgba(255,255,255,.12)!important}
+.fd{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:10px}
+.fi{font-size:1.7rem;margin-bottom:8px}
+.fh{font-family:'DM Serif Display',serif;font-size:1.1rem}
+.fl{font-size:.75rem;color:rgba(255,255,255,.4);margin-top:2px}
+.fr{font-size:.62rem;color:#80b8ff;margin-top:5px;font-family:'DM Mono',monospace}
+.ais{margin-top:40px}
+.aihr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.aip{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:6px;background:linear-gradient(135deg,rgba(99,51,240,.6),rgba(200,51,200,.6));border:1px solid rgba(180,100,255,.3);color:rgba(255,255,255,.9)}
+.ag{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.ac{border-radius:var(--r);padding:22px 20px;transition:transform var(--t),background var(--t);position:relative;overflow:hidden}.ac:hover{transform:translateY(-3px);background:rgba(255,255,255,.1)!important}
+.ac::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent 70%);opacity:.5}
+.ae{font-size:2rem;margin-bottom:10px;line-height:1}
+.at{font-family:'DM Serif Display',serif;font-size:1rem;margin-bottom:6px}
+.ad{font-size:.8rem;color:rgba(255,255,255,.5);line-height:1.55}
+.atg{display:inline-block;margin-top:12px;font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4)}
+.tag-outdoor{border-color:rgba(72,199,116,.35);color:rgba(160,255,190,.7)}
+.tag-indoor{border-color:rgba(100,160,255,.35);color:rgba(160,200,255,.7)}
+.tag-social{border-color:rgba(255,160,80,.35);color:rgba(255,200,140,.7)}
+.tag-wellness{border-color:rgba(200,100,255,.35);color:rgba(220,160,255,.7)}
+.tag-food{border-color:rgba(255,80,120,.35);color:rgba(255,160,180,.7)}
+.tag-creative{border-color:rgba(255,220,60,.35);color:rgba(255,240,140,.7)}
+.ath{display:flex;align-items:center;gap:14px;padding:20px 22px;border-radius:var(--r);font-size:.85rem;color:rgba(255,255,255,.45)}
+.dp{display:flex;gap:4px}.dp span{display:block;width:6px;height:6px;border-radius:50%;background:var(--gold);animation:dp 1.5s ease-in-out infinite}.dp span:nth-child(2){animation-delay:.2s}.dp span:nth-child(3){animation-delay:.4s}
+@keyframes dp{0%,80%,100%{opacity:.2;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+.sp{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.2);border-top-color:#0D1117;border-radius:50%;animation:spin .7s linear infinite}.spw{border-top-color:var(--w)}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{text-align:center;padding:50px 0 0;font-family:'DM Mono',monospace;font-size:.62rem;color:rgba(255,255,255,.18)}
+@media(max-width:640px){.hero{grid-template-columns:1fr}.tc{text-align:left}.fs{grid-template-columns:repeat(3,1fr)}.fc:nth-child(4),.fc:nth-child(5){display:none}.tmp{font-size:5rem}.city{font-size:2rem}}
+</style>
+</head>
+<body>
+<canvas id="atm"></canvas>
+<div class="app">
+
+<header class="hdr">
+  <div>
+    <span class="logo">Sky<em>Cast</em></span><span class="logo-tag">AI</span>
+  </div>
+  <div><div id="clk">--:--</div><div id="dt">---</div></div>
+</header>
+
+<div class="srch">
+  <div class="iw">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="ci" type="text" placeholder="Search city — Lagos, London, New York…" autocomplete="off">
+  </div>
+  <button class="btn bg" id="sb" onclick="doSearch()">Search</button>
+  <button class="btn bw" id="lb" onclick="doLocate()">📍 My Location</button>
+</div>
+<div class="err" id="err"></div>
+
+<div class="empty" id="es">
+  <div class="orb">🌤️</div>
+  <div class="etitle">Weather, understood</div>
+  <p class="esub">Real-time conditions plus AI-curated activity ideas tailored to where you are.</p>
+  <button class="btn bg" onclick="doLocate()">📍 Use My Location</button>
+</div>
+
+<div id="wp">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Current Conditions</div>
+      <div class="city" id="cn">—<span class="cpill" id="cp"></span></div>
+      <div class="crow">
+        <div class="wxi" id="wi">⛅</div>
+        <div><div class="clbl" id="cl">—</div><div class="csub" id="cs">—</div></div>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="tmp" id="tb">—<span class="tunit">°C</span></div>
+      <div class="tfl" id="tf">Feels like —</div>
+      <div class="trng" id="tr">↑ — ↓ —</div>
+    </div>
+  </div>
+
+  <div class="sg">
+    <div class="sc gl"><div class="si">💧</div><div class="sl">Humidity</div><div class="sv" id="sh">—</div><div class="su">percent</div></div>
+    <div class="sc gl"><div class="si">🌬️</div><div class="sl">Wind</div><div class="sv" id="sw">—</div><div class="su" id="swd">km/h</div></div>
+    <div class="sc gl"><div class="si">👁️</div><div class="sl">Visibility</div><div class="sv" id="sv">—</div><div class="su">km</div></div>
+    <div class="sc gl"><div class="si">🌡️</div><div class="sl">Pressure</div><div class="sv" id="sp">—</div><div class="su">hPa</div></div>
+    <div class="sc gl"><div class="si">☁️</div><div class="sl">Cloud Cover</div><div class="sv" id="scc">—</div><div class="su">percent</div></div>
+    <div class="sc gl"><div class="si">🌧️</div><div class="sl">Rain (1h)</div><div class="sv" id="sr">—</div><div class="su">mm</div></div>
+  </div>
+
+  <div class="sbc gl">
+    <div class="sbl"><span>🌅 Sunrise</span><span>Day Progress</span><span>Sunset 🌇</span></div>
+    <div class="sbt"><div class="sbf" id="sf" style="width:50%"></div><div class="sbb" id="sball" style="left:50%"></div></div>
+    <div class="sbtm"><span id="srise">—</span><span id="sset">—</span></div>
+  </div>
+
+  <div class="ey">5-Day Forecast</div>
+  <div class="fs" id="fcast"></div>
+
+  <div class="ais">
+    <div class="aihr">
+      <div class="ey" style="margin:0">Activity Suggestions</div>
+      <div class="aip">✦ AI-Powered</div>
+    </div>
+    <div id="aw"></div>
+  </div>
+</div>
+
+<footer>SkyCast AI · OpenWeatherMap · Google Gemini · Keys secured server-side</footer>
+</div>
+
+<script>
+(function(){
+  const c=document.getElementById('atm'),x=c.getContext('2d');
+  let W,H,P=[],M='stars';
+  function rsz(){W=c.width=innerWidth;H=c.height=innerHeight}
+  rsz();addEventListener('resize',rsz);
+  function mp(){
+    if(M==='rain')return{x:Math.random()*W,y:-10,vx:1.5,vy:14+Math.random()*8,len:12+Math.random()*10,a:.2+Math.random()*.25};
+    if(M==='snow')return{x:Math.random()*W,y:-10,r:1+Math.random()*2.5,vx:(Math.random()-.5)*.4,vy:.4+Math.random(),a:.4+Math.random()*.4,ph:Math.random()*Math.PI*2};
+    return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2,ph:Math.random()*Math.PI*2,sp:.015+Math.random()*.03,a:.2+Math.random()*.5};
+  }
+  function ini(n){P=Array.from({length:n},mp)}ini(150);
+  function draw(){
+    x.clearRect(0,0,W,H);
+    P.forEach((p,i)=>{
+      if(M==='stars'){p.ph+=p.sp;const a=p.a*(.6+.4*Math.sin(p.ph));x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(255,255,255,${a})`;x.fill();}
+      else if(M==='rain'){p.x+=p.vx;p.y+=p.vy;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(p.x-p.vx*2,p.y-p.len);x.strokeStyle=`rgba(160,200,255,${p.a})`;x.lineWidth=1;x.stroke();if(p.y>H)P[i]=mp();}
+      else if(M==='snow'){p.ph+=.01;p.x+=p.vx+Math.sin(p.ph)*.3;p.y+=p.vy;x.beginPath();x.arc(p.x,p.y,p.r,0,Math.PI*2);x.fillStyle=`rgba(220,240,255,${p.a})`;x.fill();if(p.y>H)P[i]=mp();}
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+  window.setAtm=function(m){M=m;ini(m==='rain'?200:m==='snow'?120:150)};
+})();
+
+function tick(){
+  const n=new Date();
+  document.getElementById('clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('dt').textContent=n.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+tick();setInterval(tick,1000);
+
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function emoji(id,night){
+  if(id>=200&&id<300)return'⛈️';if(id>=300&&id<400)return'🌦️';
+  if(id>=500&&id<510)return'🌧️';if(id===511)return'🌨️';
+  if(id>=520&&id<600)return'🌧️';if(id>=600&&id<700)return'❄️';
+  if(id>=700&&id<800)return'🌫️';if(id===800)return night?'🌙':'☀️';
+  if(id===801)return'🌤️';if(id===802)return'⛅';return'☁️';
+}
+function theme(id){
+  if(id>=200&&id<300)return['#060810','#0d1220','#1a1a30','stars'];
+  if(id>=300&&id<600)return['#0a0f1a','#152030','#1e3a5a','rain'];
+  if(id>=600&&id<700)return['#0d1525','#1a2a40','#3a6080','snow'];
+  if(id>=700&&id<800)return['#111820','#1e2a35','#3a5060','stars'];
+  if(id===800)return['#0a1525','#12254a','#1a4a8a','stars'];
+  if(id<=802)return['#0f1a2e','#1e2e4a','#2a4060','stars'];
+  return['#111825','#1a2535','#253040','stars'];
+}
+function wdir(d){return['N','NE','E','SE','S','SW','W','NW'][Math.round((d||0)/45)%8]}
+function ftime(u,tz){return new Date((u+tz)*1000).toISOString().slice(11,16)}
+function tc(t){return{Outdoor:'outdoor',Indoor:'indoor',Social:'social',Wellness:'wellness',Food:'food',Creative:'creative'}[t]||''}
+
+function showErr(m){const e=document.getElementById('err');e.style.display='block';e.textContent='⚠️ '+m}
+function clrErr(){document.getElementById('err').style.display='none'}
+function busy(id,b,t){
+  const e=document.getElementById(id);e.disabled=b;
+  e.innerHTML=b?`<span class="sp${id==='lb'?' spw':''}"></span> ${id==='sb'?'Searching…':'Locating…'}`:t;
+}
+
+async function apiFetch(params){
+  const r=await fetch('/api/weather?'+new URLSearchParams(params));
+  const d=await r.json();if(!r.ok)throw new Error(d.error||'Weather error');return d;
+}
+async function apiAI(w){
+  const r=await fetch('/api/ai-activities',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({weather:w})});
+  const d=await r.json();if(!r.ok)throw new Error(d.error||'AI error');return d.activities;
+}
+
+async function load(lat,lon){
+  try{
+    const[curr,fore]=await Promise.all([apiFetch({type:'current',lat,lon}),apiFetch({type:'forecast',lat,lon})]);
+    render(curr,fore);
+  }catch(e){showErr(e.message);busy('sb',false,'Search');busy('lb',false,'📍 My Location')}
+}
+async function loadCity(city){
+  try{
+    const g=await apiFetch({type:'geo',city});
+    if(!Array.isArray(g)||!g.length)throw new Error('City not found.');
+    await load(g[0].lat,g[0].lon);
+  }catch(e){showErr(e.message);busy('sb',false,'Search')}
+}
+
+function render(c,f){
+  document.getElementById('es').style.display='none';
+  document.getElementById('wp').style.display='block';
+  const id=c.weather[0].id,night=c.weather[0].icon?.endsWith('n');
+  const[sf,sm,st,atm]=theme(id);
+  document.documentElement.style.setProperty('--sf',sf);
+  document.documentElement.style.setProperty('--sm',sm);
+  document.documentElement.style.setProperty('--st',st);
+  window.setAtm(atm);
+
+  document.getElementById('cn').childNodes[0].textContent=c.name+' ';
+  document.getElementById('cp').textContent=c.sys.country;
+  document.getElementById('tb').innerHTML=`${Math.round(c.main.temp)}<span class="tunit">°C</span>`;
+  document.getElementById('tf').textContent=`Feels like ${Math.round(c.main.feels_like)}°C`;
+  document.getElementById('tr').textContent=`↑ ${Math.round(c.main.temp_max)}°  ↓ ${Math.round(c.main.temp_min)}°`;
+  document.getElementById('wi').textContent=emoji(id,night);
+  document.getElementById('cl').textContent=c.weather[0].main;
+  document.getElementById('cs').textContent=c.weather[0].description;
+  document.getElementById('sh').textContent=c.main.humidity;
+  document.getElementById('sw').textContent=Math.round(c.wind.speed*3.6);
+  document.getElementById('swd').textContent=`km/h · ${wdir(c.wind.deg)}`;
+  document.getElementById('sv').textContent=((c.visibility||10000)/1000).toFixed(1);
+  document.getElementById('sp').textContent=c.main.pressure;
+  document.getElementById('scc').textContent=c.clouds?.all??'—';
+  document.getElementById('sr').textContent=c.rain?.['1h']?.toFixed(1)??'0';
+
+  const tz=c.timezone,sr=c.sys.sunrise,ss=c.sys.sunset,now=Date.now()/1000;
+  const pct=Math.min(100,Math.max(0,((now-sr)/(ss-sr))*100));
+  document.getElementById('sf').style.width=pct+'%';
+  document.getElementById('sball').style.left=`calc(${pct}% - 6px)`;
+  document.getElementById('srise').textContent='🌅 '+ftime(sr,tz);
+  document.getElementById('sset').textContent=ftime(ss,tz)+' 🌇';
+
+  const days={};
+  f.list.forEach(i=>{const d=new Date(i.dt*1000),k=d.toDateString();if(!days[k])days[k]={day:DAYS[d.getDay()],items:[]};days[k].items.push(i)});
+  document.getElementById('fcast').innerHTML=Object.values(days).slice(0,5).map(d=>{
+    const temps=d.items.map(i=>i.main.temp),hi=Math.round(Math.max(...temps)),lo=Math.round(Math.min(...temps));
+    const mid=d.items[Math.floor(d.items.length/2)],rain=d.items.reduce((s,i)=>s+(i.pop||0),0)/d.items.length;
+    return`<div class="fc gl"><div class="fd">${d.day}</div><div class="fi">${emoji(mid.weather[0].id)}</div><div class="fh">${hi}°</div><div class="fl">${lo}°</div>${rain>.1?`<div class="fr">💧${Math.round(rain*100)}%</div>`:''}</div>`;
+    }).join('');
+
+  const pw={name:c.name,country:c.sys.country,temp:Math.round(c.main.temp),feelsLike:Math.round(c.main.feels_like),humidity:c.main.humidity,wind:Math.round(c.wind.speed*3.6),visibility:((c.visibility||10000)/1000).toFixed(1),description:c.weather[0].description};
+  const aw=document.getElementById('aw');
+  aw.innerHTML=`<div class="ath gl"><div class="dp"><span></span><span></span><span></span></div>Crafting activity ideas for you…</div>`;
+  apiAI(pw).then(acts=>{
+    aw.innerHTML=`<div class="ag">${acts.map(a=>`<div class="ac gl"><div class="ae">${a.emoji}</div><div class="at">${a.title}</div><div class="ad">${a.description}</div><div class="atg tag-${tc(a.tag)}">${a.tag}</div></div>`).join('')}</div>`;
+  }).catch(e=>{aw.innerHTML=`<div class="ath gl" style="color:rgba(255,100,100,.6)">⚠️ ${e.message}</div>`});
+
+  busy('sb',false,'Search');busy('lb',false,'📍 My Location');
+}
+
+function doSearch(){
+  const c=document.getElementById('ci').value.trim();
+  if(!c){showErr('Enter a city name.');return}
+  clrErr();busy('sb',true,'Search');loadCity(c);
+}
+function doLocate(){
+  clrErr();busy('lb',true,'📍 My Location');
+  if(!navigator.geolocation){showErr('Geolocation not supported.');busy('lb',false,'📍 My Location');return}
+  navigator.geolocation.getCurrentPosition(
+    p=>load(p.coords.latitude,p.coords.longitude),
+    ()=>{showErr('Location denied. Search by city instead.');busy('lb',false,'📍 My Location')}
+  );
+}
+document.getElementById('ci').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch()});
+</script>
+</body>
+</html>
+    
