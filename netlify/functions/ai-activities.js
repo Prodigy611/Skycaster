@@ -13,40 +13,29 @@ exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
 
   const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'Gemini API key not configured.' }) };
+  if (!geminiKey) return { statusCode: 500, headers, body: JSON.stringify({ error: 'Key missing.' }) };
 
-  let weather;
+  let w;
   try {
-    const body = JSON.parse(event.body || '{}');
-    weather = body.weather;
-    if (!weather) throw new Error('Missing weather data');
+    w = JSON.parse(event.body || '{}').weather;
+    if (!w) throw new Error();
   } catch {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid request body.' }) };
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Bad request.' }) };
   }
 
-  const prompt = `Current weather in ${weather.name}, ${weather.country}:
-- Condition: ${weather.description}
-- Temperature: ${weather.temp}°C (feels like ${weather.feelsLike}°C)
-- Humidity: ${weather.humidity}%
-- Wind: ${weather.wind} km/h
-- Visibility: ${weather.visibility} km
-
-Suggest exactly 6 activities suited to these conditions. Return ONLY a valid JSON array, no markdown. Each object must have:
-- emoji (single emoji)
-- title (max 5 words)
-- description (1-2 sentences tied to the weather)
-- tag (one of: Outdoor | Indoor | Social | Wellness | Food | Creative)`;
+  // SHORT prompt — saves tokens on every request
+  const prompt = `Weather: ${w.description}, ${w.temp}°C feels ${w.feelsLike}°C, humidity ${w.humidity}%, wind ${w.wind}km/h, vis ${w.visibility}km. Location: ${w.name}, ${w.country}.
+Return JSON array of 6 activities. Each: {emoji,title,description,tag}. title=max 5 words. description=1 sentence. tag=Outdoor|Indoor|Social|Wellness|Food|Creative. JSON only, no markdown.`;
 
   try {
-    const url = `${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${geminiKey}`;
-    const res = await fetch(url, {
+    const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 512,
           responseMimeType: 'application/json',
         },
       }),
@@ -60,6 +49,6 @@ Suggest exactly 6 activities suited to these conditions. Return ONLY a valid JSO
 
     return { statusCode: 200, headers, body: JSON.stringify({ activities }) };
   } catch (err) {
-    return { statusCode: 502, headers, body: JSON.stringify({ error: 'Failed to reach Gemini service.' }) };
+    return { statusCode: 502, headers, body: JSON.stringify({ error: 'Gemini unreachable.' }) };
   }
 };
